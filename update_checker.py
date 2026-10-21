@@ -1,76 +1,97 @@
 
 import json
-import re
 import threading
 import urllib.request
 import webbrowser
-import tkinter as tk
+from pathlib import Path
 from tkinter import messagebox
 
-APP_VERSION = "1.0.0"
 
 GITHUB_API = (
     "https://api.github.com/repos/"
-    "tarafery7-cell/KHDubbing/releases/latest"
+    "tarafery7-cell/KHDubbing/commits?per_page=1"
 )
 
-RELEASES_URL = (
+GITHUB_URL = (
     "https://github.com/tarafery7-cell/"
-    "KHDubbing/releases/latest"
+    "KHDubbing/commits"
 )
 
-
-def version_tuple(version):
-    # Supports versions such as v1.0.1 or 1.0.1
-    numbers = re.findall(r"\d+", version)
-    return tuple(map(int, numbers))
+STATE_DIR = Path.home() / "AppData" / "Local" / "KHDubbing"
+STATE_FILE = STATE_DIR / "last_seen_commit.txt"
 
 
-def check_update():
-    try:
-        request = urllib.request.Request(
-            GITHUB_API,
-            headers={"User-Agent": "KH-Dubbing-Update-Checker"}
-        )
+def get_latest_commit():
+    request = urllib.request.Request(
+        GITHUB_API,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "KH-Dubbing-Update-Checker"
+        }
+    )
 
-        with urllib.request.urlopen(request, timeout=5) as response:
-            data = json.loads(response.read().decode("utf-8"))
+    with urllib.request.urlopen(request, timeout=8) as response:
+        data = json.loads(response.read().decode("utf-8"))
 
-        latest_version = data.get("tag_name", "").strip()
+    if not isinstance(data, list) or not data:
+        return None
 
-        if not latest_version:
-            return
+    commit = data[0]
 
-        if version_tuple(latest_version) > version_tuple(APP_VERSION):
-            download_url = data.get("html_url", RELEASES_URL)
+    return {
+        "sha": commit["sha"],
+        "message": commit["commit"]["message"],
+        "url": commit.get("html_url", GITHUB_URL)
+    }
+
+
+def check_update(root):
+    def worker():
+        try:
+            latest = get_latest_commit()
+
+            if not latest:
+                return
+
+            STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+            # First run: save the current commit without showing an alert
+            if not STATE_FILE.exists():
+                STATE_FILE.write_text(
+                    latest["sha"],
+                    encoding="utf-8"
+                )
+                return
+
+            previous_sha = STATE_FILE.read_text(
+                encoding="utf-8"
+            ).strip()
+
+            if previous_sha == latest["sha"]:
+                return
+
+            STATE_FILE.write_text(
+                latest["sha"],
+                encoding="utf-8"
+            )
 
             def show_popup():
-                root = tk.Tk()
-                root.withdraw()
-
                 answer = messagebox.askyesno(
                     "KH Dubbing - Update",
-                    f"មាន Update ថ្មី!\n\n"
-                    f"Version បច្ចុប្បន្ន: {APP_VERSION}\n"
-                    f"Version ថ្មី: {latest_version}\n\n"
-                    "តើអ្នកចង់ចូលទៅទាញយកឥឡូវនេះទេ?"
+                    "មានការកែប្រែថ្មីនៅលើ GitHub!\n\n"
+                    f"ព័ត៌មាន៖\n{latest['message'][:800]}\n\n"
+                    "តើអ្នកចង់មើលការកែប្រែថ្មីឥឡូវនេះទេ?",
+                    parent=root
                 )
 
                 if answer:
-                    webbrowser.open(download_url)
+                    webbrowser.open(latest["url"])
 
-                root.destroy()
+            root.after(0, show_popup)
 
-            show_popup()
+        except Exception:
+            # No internet or GitHub unavailable:
+            # continue opening the application normally.
+            pass
 
-    except Exception:
-        # No internet or GitHub unavailable:
-        # continue opening the application normally.
-        pass
-
-
-def start_update_checker():
-    threading.Thread(
-        target=check_update,
-        daemon=True
-    ).start()
+    threading.Thread(target=worker, daemon=True).start()
