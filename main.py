@@ -59,8 +59,8 @@ ctk.set_default_color_theme("blue")
 # --------------------------------------------------------------------------- #
 # Constants
 # --------------------------------------------------------------------------- #
-APP_VERSION = "1"
-GITHUB_REPO = ""
+APP_VERSION = "1.0.0"
+GITHUB_REPO = "tarafery7-cell/KHDubbing"
 GITHUB_VERSION_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/version.json"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 CONTACT_URL = ""
