@@ -1,0 +1,5 @@
+customtkinter
+edge-tts
+imageio-ffmpeg
+Pillow
+gradio_client
