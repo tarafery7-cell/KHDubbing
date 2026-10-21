@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-from update_checker import start_update_checker
-
-start_update_checker()
-
 KH Dubbing (Khmer)  --  rebuilt source
 Rebuilt from the decompiled main.pyc (v1.4.0 behaviour).
 
