@@ -6,7 +6,6 @@ import webbrowser
 from pathlib import Path
 from tkinter import messagebox
 
-
 GITHUB_API = (
     "https://api.github.com/repos/"
     "tarafery7-cell/KHDubbing/commits?per_page=1"
