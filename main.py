@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 KH Dubbing (Khmer)  --  rebuilt source
-Rebuilt from the decompiled main.pyc (v1.4.0 behaviour).
+Rebuilt from the decompiled main.pyc (v1.0.1 behaviour).
 
 Features
   * Khmer / English TTS through edge-tts (voice presets, speed slider)
